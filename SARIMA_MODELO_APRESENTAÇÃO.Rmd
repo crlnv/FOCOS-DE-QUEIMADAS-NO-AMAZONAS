@@ -1,0 +1,338 @@
+--- 
+title: "Focos de Queimadas no Amazonas (1999-2023)"
+title-slide-attributes:
+    data-background-image: queimadas2.jpeg
+    data-background-size: contain
+    data-background-opacity: "0.8"
+author: "Caroline Vasconcelos"
+date: March 03, 2024
+format: 
+  revealjs:
+    hash-type: number
+    transition: fade
+    auto-stretch: false
+    self-contained: true
+    height: 900
+    width: 1600
+knitr: 
+  opts_chunk: 
+    echo: false
+--- 
+
+## Contexto ambiental...
+
+::::::::: {.columns}
+::: {.column}
+```{r, echo=FALSE,out.width="100%",out.height="40%",fig.show='hold', fig.align = 'left'}
+knitr::include_graphics(c("jornal1.png", "jornal2.png"))
+``` 
+:::
+::: {.column}
+```{r, echo=FALSE,out.width="100%",out.height="20%",fig.show='hold', fig.align = 'right'}
+knitr::include_graphics("jornal3.png")
+``` 
+:::
+:::::::::
+
+---
+
+## Série: 1999-jan até 2023-dez
+
+- Série mensal;
+- Fonte: Portal de Queimadas, INPE.
+
+```{r, include=F}
+
+#-- BIBLIOTECAS
+
+library(readr)
+library(forecast)
+library(TSA)
+
+
+#-- DADOS CSV 
+
+
+dados.st <- read.csv("historico_estado_amazonas - historico_estado_amazonas(2).csv") #stringsAsFactors = F
+
+
+x <- NULL
+for(i in 1:nrow(dados.st)) x <- c(x, as.numeric(dados.st[i,]))
+yy <- as.array(x)
+
+ts.plot(x)
+z <- ts(x, start = c(1999,1), end = c(2023, 12), frequency = 12)
+
+```
+```{r, include=TRUE, echo=FALSE,out.width="100%",out.height="20%",fig.show='hold', fig.align = 'right'}
+plot(z, main = "Focos de queimadas no Amazonas", ylab = "No. de Queimadas",
+     xlab = "t", lwd = 3, col = 'tomato')
+
+```
+
+--- 
+
+## Para eliminar a heterocedasticidade, tomamos o log, e então
+
+
+
+```{r, include=TRUE, echo=FALSE,out.width="100%",out.height="20%",fig.show='hold', fig.align = 'right'}
+w <- window(z, start = c(2002,1))
+w <- log(w)
+ts.plot(w,  ylab = 'log', xlab = "t", lwd = 3, col = 'tomato',
+        main = "Focos de queimadas no Amazonas")  
+```
+
+---
+
+## Monthplot
+
+- Os dados exibem um padrão sazonal?
+
+```{r, include = TRUE, echo=FALSE,out.width="100%",out.height="20%",fig.show='hold', fig.align = 'right'}
+
+monthplot(w,lwd = 2, col =  'seagreen', col.base = 'purple',
+          ylab = "log", xlab = "t", main = "Subséries") 
+
+```
+
+---
+
+## Periodograma
+
+- Padrão sazonal de período 6
+
+```{r, include = FALSE,echo=FALSE,out.width="100%",out.height="20%",fig.show='hold', fig.align = 'right'}
+
+har <- harmonic(w)
+mod.lm <- lm( w ~ har)
+mod.lm
+
+param <- coefficients(mod.lm)
+# harmônico estimado
+curve( param[1]+ param[2]*cos(2*pi*x/12) + param[3]*sin(2*pi*x/12),1,12, 
+       ylab = 'Harmônico estimado', lwd = 2, xlab = 't', main = "Curva ")
+res <- residuals(mod.lm)
+ts.plot(res)
+stats::acf(res)
+
+
+```
+```{r, include = TRUE,echo=FALSE,out.width="100%",out.height="20%",fig.show='hold', fig.align = 'right' }
+#periodograma dos residuos
+p2 <- periodogram(res, xlab = "Frequência", ylab = "Periodograma")
+
+```
+
+---
+
+## ACF
+
+- ACF sugere um processo MA(5)
+
+
+```{r, include = FALSE}
+autocorrelacao_w <- acf(w, na.action = na.pass) # sugere um processo estacionário
+plot1 <- plot(autocorrelacao_w, main = "ACF: focos de queimadas", col = 2, lwd = 2) 
+```
+```{r, include = TRUE, echo=FALSE,out.width="100%",out.height="20%",fig.show='hold', fig.align = 'center' }
+plot1 <- plot(autocorrelacao_w, main = "ACF: focos de queimadas", col = 2, lwd = 2) 
+```
+
+---
+
+## PACF
+
+-  o PACF sugere um processo AR(3)
+
+
+```{r, include = FALSE}
+autocorrelacaop_w <- pacf(w, na.action = na.pass) # sugere um processo de ordem 2
+plot2 <- plot(autocorrelacaop_w, main = "PACF: focos de queimadas", ylab = "ACF Parcial", col = 2, lwd = 2)
+```
+```{r, include = TRUE, echo=FALSE,out.width="100%",out.height="20%",fig.show='hold', fig.align = 'center' }
+plot2 <- plot(autocorrelacaop_w, main = "PACF: focos de queimadas", ylab = "ACF Parcial", col = 2, lwd = 2)
+```
+
+---
+
+## FUNÇÃO AUTO.ARIMA
+
+- Modelo sugerido: ARIMA(3,0,5)(0,1,1)
+- AIC = 536.86
+- Resíduos
+
+```{r, include = TRUE,echo=FALSE,out.width="80%",out.height="20%",fig.show='hold', fig.align = 'center'}
+test <- arima(w, order = c(3,0,5), seasonal = list(order = c(0,1,1)))
+plot(test$residuals, ylab = "Resíduos", xlab = "t", col = "tomato", lwd = 2)
+```
+
+---
+
+## FUNÇÃO AUTO.ARIMA
+
+- ACF
+
+```{r, include = TRUE,echo=FALSE,out.width="100%",out.height="20%",fig.show='hold', fig.align = 'center'}
+#test <- auto.arima(w, seasonal = TRUE, trace = TRUE) 
+test <- arima(w, order = c(3,0,5), seasonal = list(order = c(0,1,1)))
+acf.autoarima <- acf(test$residuals)
+
+
+```
+
+---
+
+## FUNÇÃO AUTO.ARIMA
+
+- PACF
+
+```{r, include = TRUE,echo=FALSE,out.width="100%",out.height="20%",fig.show='hold', fig.align = 'center'}
+#test <- auto.arima(w, seasonal = TRUE, trace = TRUE) 
+test <- arima(w, order = c(3,0,5), seasonal = list(order = c(0,1,1)))
+pacf.autoarima <- pacf(test$residuals)
+```
+
+
+
+---
+
+## SARIMA (3,0,5)(0,2,2) 
+
+- Para incorporar o comportamento de sazonalidade, utilizam-se os modelos ARIMA sazonais multiplicativos (SARIMA) (Morettin & Toloi, 2004).
+- 2 diferenças
+- Período 12
+
+```{r, include = FALSE}
+mod <- arima(w, order = c(3,0,5), seasonal = list(order = c(0,2,2)))
+acf.autoarima <- acf(mod$residuals, col = 2)
+```
+```{r, include = TRUE,echo=FALSE,out.width="80%",out.height="20%",fig.show='hold', fig.align = 'center'}
+acf.mod <- plot(acf.autoarima, main = "ACF: FOCOS DE QUEIMADAS", col = 2, lwd = 2)
+```
+
+---
+
+## SARIMA (3,0,5)(0,2,2)
+
+- PACF
+
+```{r, include = FALSE}
+mod <- arima(w, order = c(3,0,5), seasonal = list(order = c(0,2,2)))
+pacf.autoarima <- pacf(mod$residuals, col = 2)
+```
+```{r, include = TRUE,echo=FALSE,out.width="100%",out.height="20%",fig.show='hold', fig.align = 'center'}
+pacf.mod <- plot(pacf.autoarima, main = "PACF: FOCOS DE QUEIMADAS", col = 2, lwd = 2)
+```
+
+---
+
+## SARIMA (3,0,5)(0,2,2)
+
+```{r, include = T, echo = F}
+Box.test(mod$residuals) 
+```
+
+```{r, include = TRUE,echo=FALSE,out.width="70%",out.height="20%",fig.show='hold', fig.align = 'center'}
+plot(mod$residuals, main = "Resíduos", xlab = "t", lwd = 3, ylab = "", col = "black")
+abline(h=0, lwd=2, col=2, lty=2)
+
+```
+
+---
+
+## SARIMA (3,0,5)(0,2,2)
+
+```{r, include = T, echo = F}
+shapiro.test((mod$residuals)) 
+```
+
+```{r, include = TRUE,echo=FALSE,out.width="70%",out.height="20%",fig.show='hold', fig.align = 'center'}
+hist(mod$residuals, col = "black", border = FALSE, main = "", xlab = "Resíduos", ylab = "Frequência")
+
+
+```
+
+
+---
+
+## PREVISÃO
+
+
+
+![](previsao.png){width=100%}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+
+## Médias
+
+|      |  2024   |  2025   |      |  2024   |  2025   |
+|:----:|:-------:|:-------:|:----:|:-------:|:-------:|
+| Jan  |  66,7   |  72,6   | Jul  | 1.633,9 | 1.873,4 |
+| Fev  |  44,8   |  43,9   | Ago  | 6.991,1 | 7.748,8 |
+| Mar  |  46,3   |  40,8   | Set  | 5.463,1 | 5.516,8 |
+| Abr  |  21,8   |  18,6   | Out  | 1.924,7 | 1.782,1 |
+| Maio |  45,9   |  43,9   | Nov  |  607,4  |  546,6  |
+| Jun  |  147,9  |  160,3  | Dez  |  133,8  |  125,2  |
+
+
+---
+
+## Referências
+
+
+- Cowpertwait, P. S. P., & Metcalfe, A. V. (2009). Introductory Time Series with R. New York: Springer.
+
+- Martinez Espinosa, M., Prado, S. M., & Ghellere, M. (2010). Uso do modelo SARIMA na previsão do número de focos de calor para os meses de junho a outubro no Estado de Mato Grosso. Ciência e Natura, 32(2), 7-21.
+
+- Morettin, P. A., & Toloi, C. M. C. (2004). Análise de Séries Temporais. São Paulo: Editora Edgard Blücher.
+
+- R Core Team (2023). _R: A Language and Environment for Statistical Computing_. R Foundation for Statistical Computing, Vienna, Austria. <https://www.R-project.org/>.
+
+
+
+
+
+
+
+
+
+
