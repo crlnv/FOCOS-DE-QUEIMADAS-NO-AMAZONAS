@@ -13,16 +13,9 @@ library(TSA)
 
 dados.st <- read.csv("historico_estado_amazonas - historico_estado_amazonas(2).csv") #stringsAsFactors = F
 
-
+# Transformando os dados em uma série temporal...
 x <- NULL
 for(i in 1:nrow(dados.st)) x <- c(x, as.numeric(dados.st[i,]))
-
-
-
-
-
-yy <- as.array(x)
-
 ts.plot(x)
 z <- ts(x, start = c(1999,1), end = c(2023, 12), frequency = 12)
 plot(z, main = "Subséries: focos de queimadas no Amazonas (2002-2023)", ylab = "No. de Queimadas",
