@@ -1,19 +1,19 @@
 #----------- SÉRIES TEMPORAIS: PROJETO - FOCOS DE QUEIMADAS NO AMAZONAS--------------------
 
-#====== BIBLIOTECAS================================
+#------BIBLIOTECAS-------------------
 
 library(readr)
 library(forecast)
 library(TSA)
 
 
-#======== DADOS CSV ===============================
+#------ARQUIVO CSV--------------------
 
 # 1999-jan até 2023-dez
 
 dados.st <- read.csv("historico_estado_amazonas - historico_estado_amazonas(2).csv") #stringsAsFactors = F
 
-# Transformando os dados em uma série temporal...
+#---------Transformando os dados em uma série temporal...---------------------
 x <- NULL
 for(i in 1:nrow(dados.st)) x <- c(x, as.numeric(dados.st[i,]))
 ts.plot(x)
