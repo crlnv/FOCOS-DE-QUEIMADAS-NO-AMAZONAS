@@ -1,0 +1,254 @@
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{listings}
+\usepackage[svgnames]{xcolor}
+\usepackage{lstautogobble} 
+\usepackage{graphicx}
+
+\lstset{
+  language=R,               % Definir linguagem para o código (opcional)
+  frame=single,             % Colocar moldura ao redor do código
+  numbers=left,             % Números à esquerda do código
+  basicstyle=\ttfamily\small, % Fonte monoespaçada
+  keywordstyle=\color{blue}, % Estilo para palavras-chave
+  commentstyle=\color{gray}, % Estilo para comentários
+  stringstyle=\color{orange} % Estilo para strings
+}
+
+
+
+
+\title{QUEIMADAS NO AMAZONAS}
+\subtitle{UM MODELO COM COMPONENTE SAZONAL}
+\author{Caroline Vasconcelos}
+
+
+\usetheme{lucid}
+
+\begin{document}
+\frame{
+ \titlepage
+}
+\frame {
+ \frametitle{Contextualizando...}
+\begin{figure}
+        \centering
+        % Primeira linha de imagens
+        \includegraphics[width=0.45\linewidth]{imagens/jornal1.png} 
+        \hfill
+        \includegraphics[width=0.45\linewidth]{imagens/jornal2.png} 
+        \\ % Quebra de linha
+        % Segunda linha de imagens
+        \includegraphics[width=0.45\linewidth]{imagens/jornal3.png} 
+        \hfill
+        \includegraphics[width=0.45\linewidth]{imagens/jornal4.png} 
+    \end{figure}
+ 
+}
+
+
+\frame {
+ \frametitle{Dados}
+ \begin{itemize}
+     \item Série: 1999-jan até 2023-dez; 
+     \item Série mensal;
+     \item Fonte: Portal de Queimadas, INPE.
+ \end{itemize}
+
+ \begin{figure}
+     \centering
+     \includegraphics[width=0.9\linewidth]{imagens/graf1.png}
+     \caption{Série temporal dos focos de queimadas no Amazonas (1999-2023)}
+     \label{fig:enter-label}
+ \end{figure}
+}
+
+\frame {
+ \frametitle{Dados}
+ Para eliminar a \textbf{heterocedasticidade}, tomamos o \textbf{log}, e então
+  \begin{figure}
+     \centering
+     \includegraphics[width=0.9\linewidth]{imagens/graf2.png}
+     \caption{Log da série}
+     \label{fig:enter-label}
+ \end{figure}
+}
+
+\frame {
+ \frametitle{Monthplot}
+ A série exibe um \textbf{padrão sazonal}?
+  \begin{figure}
+     \centering
+     \includegraphics[width=0.9\linewidth]{imagens/graf3.png}
+     \caption{Comportamento mensal}
+     \label{fig:enter-label}
+ \end{figure}
+}
+
+\frame {
+ \frametitle{Periodograma}
+ Verificamos que o periodograma apresenta um pico e esse pico tem período 6.
+  \begin{figure}
+     \centering
+     \includegraphics[width=0.9\linewidth]{imagens/graf4.png}
+     \caption{Pico da série}
+     \label{fig:enter-label}
+ \end{figure}
+}
+
+\frame {
+ \frametitle{ACF}
+ ACF sugere um processo MA(5).
+  \begin{figure}
+     \centering
+     \includegraphics[width=0.9\linewidth]{imagens/graf5.png}
+     \caption{ACF da série}
+     \label{fig:enter-label}
+ \end{figure}
+}
+
+\frame {
+ \frametitle{PACF}
+ PACF sugere um processo AR(3).
+  \begin{figure}
+     \centering
+     \includegraphics[width=0.9\linewidth]{imagens/graf6.png}
+     \caption{PACF da série}
+     \label{fig:enter-label}
+ \end{figure}
+}
+
+\frame {
+ \frametitle{USANDO A FUNÇÃO AUTO.ARIMA}
+
+\begin{itemize}
+     \item Modelo sugerido: ARIMA(3,0,5)(0,1,1); 
+     \item AIC = 536.86;
+     \item Resíduos
+ \end{itemize}
+
+  \begin{figure}
+     \centering
+     \includegraphics[width=0.9\linewidth]{imagens/graf7.png}
+     \caption{Resíduos do modelo ARIMA(3,0,5)(0,1,1) }
+     \label{fig:enter-label}
+ \end{figure}
+}
+
+\frame {
+ \frametitle{AUTO.ARIMA}
+ ACF
+
+  \begin{figure}
+     \centering
+     \includegraphics[width=0.9\linewidth]{imagens/graf8.png}
+     \caption{ACF do modelo ARIMA(3,0,5)(0,1,1) }
+     \label{fig:enter-label}
+ \end{figure}
+}
+
+\frame {
+ \frametitle{AUTO.ARIMA}
+ PACF
+
+  \begin{figure}
+     \centering
+     \includegraphics[width=0.9\linewidth]{imagens/graf9.png}
+     \caption{PACF do modelo ARIMA(3,0,5)(0,1,1) }
+     \label{fig:enter-label}
+ \end{figure}
+}
+
+\frame {
+ \frametitle{SARIMA (3,0,5)(0,2,2)}
+ \begin{itemize}
+     \item Para incorporar o comportamento de sazonalidade, utilizam-se os modelos ARIMA sazonais multiplicativos (SARIMA) (Morettin & Toloi, 2004);
+     \item 2 diferenças;
+     \item ACF
+ \end{itemize}
+
+\begin{figure}
+     \centering
+     \includegraphics[width=0.9\linewidth]{imagens/graf10.png}
+     \caption{ACF do modelo SARIMA (3,0,5)(0,2,2)}
+     \label{fig:enter-label}
+ \end{figure}
+}
+
+\frame {
+ \frametitle{SARIMA (3,0,5)(0,2,2)}
+PACF
+  \begin{figure}
+     \centering
+     \includegraphics[width=0.9\linewidth]{imagens/graf11.png}
+     \caption{PACF do modelo SARIMA (3,0,5)(0,2,2)}
+     \label{fig:enter-label}
+ \end{figure}
+}
+
+\begin{frame}[fragile] 
+ \frametitle{SARIMA (3,0,5)(0,2,2)}
+
+Box-Pierce Test
+
+\begin{lstlisting}[language=R]
+X-squared = 0.086041, df = 1, p-value = 0.7693
+\end{lstlisting}
+
+  \begin{figure}
+     \centering
+     \includegraphics[width=0.9\linewidth]{imagens/graf12.png}
+     \caption{Resíduos do modelo SARIMA (3,0,5)(0,2,2)}
+     \label{fig:enter-label}
+  \end{figure}
+\end{frame}
+
+
+\begin{frame}[fragile] 
+ \frametitle{SARIMA (3,0,5)(0,2,2)}
+
+Shapiro-Wilk Normality Test
+
+\begin{lstlisting}[language=R]
+W = 0.9858, p-value = 0.01019
+\end{lstlisting}
+
+  \begin{figure}
+     \centering
+     \includegraphics[width=0.9\linewidth]{imagens/graf13.png}
+     \caption{Histograma dos resíduos do modelo SARIMA (3,0,5)(0,2,2)}
+     \label{fig:enter-label}
+  \end{figure}
+\end{frame}
+
+
+\frame{
+  \frametitle{PREVISÃO}
+
+ \begin{figure}
+     \centering
+     \includegraphics[width=0.9\linewidth]{imagens/graf14.png}
+     \caption{Série incluindo previsão do modelo SARIMA (3,0,5)(0,2,2)}
+     \label{fig:enter-label}
+  \end{figure}
+  
+\end{frame}
+}
+
+
+\frame{
+  \frametitle{MÉDIAS MENSAIS}
+
+ \begin{figure}
+     \centering
+     \includegraphics[width=0.9\linewidth]{imagens/tab1.png}
+     \caption{Previsão das médias mensais do modelo SARIMA (3,0,5)(0,2,2)}
+     \label{fig:enter-label}
+  \end{figure}
+  
+\end{frame}
+}
+
+ 
+\end{document}
