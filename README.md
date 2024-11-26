@@ -13,7 +13,7 @@ Sobre o reveal.js uma consideração: o design é muito bonito e ele oferece fer
 Enfim, se for usar o reveal.js leve isso em consideração!
 
 
-UPDATE: refiz a apresentação no latex, ficou bem mais agradável que o pdf gerado pelo rmarkdown via pacote reveal.js :) 
+UPDATE 26/11/2024: refiz a apresentação no latex, ficou bem mais agradável que o pdf gerado pelo rmarkdown via pacote reveal.js :) 
 
 
 
